@@ -1,3 +1,5 @@
+const { split } = require("../utils")
+
 /**
  * Transforma uma lista aplicando a função de transformação mapper a cada elemento, assim como o método map.
  * A função mapper é assíncrona (retorna Promise).
@@ -30,7 +32,14 @@
  * @returns {Promise<G[]>} lista de itens transformados
  */
 const concurrentMap = async (concurrency, mapper, items) => {
-  // TODO:
+  const chunks = split(concurrency, items)
+  let result = []
+  for (const chunk of chunks) {
+    const promises = chunk.map(mapper)
+    const responses = await Promise.all(promises)
+    result = result.concat(responses)
+  }
+  return result
 }
 
 /**
@@ -43,10 +52,19 @@ const concurrentMap = async (concurrency, mapper, items) => {
  * @returns {Promise<G[]>} lista de itens transformados
  */
 const concurrentMapChallenge = (concurrency, mapper, items) => {
-  // TODO:
+  const chunks = split(concurrency, items)
+  return chunks.reduce(
+    (prevPromise, chunk) => {
+      return prevPromise.then(prevResponse => {
+        const promises = chunk.map(mapper)
+        return Promise.all(prevResponse.concat(promises))
+      })
+    },
+    Promise.resolve([])
+  )
 }
 
 module.exports = {
   concurrentMap,
-  // TODO: se implementar o `concurrentMapChallenge`, adicioná-lo ao module.exports para testá-lo
+  concurrentMapChallenge,
 }
