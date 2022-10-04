@@ -1,3 +1,4 @@
+const { delay } = require('../utils')
 /**
  * Decorator que recebe uma função assíncrona como argumento e retorna uma nova função assíncrona:
  * a função retornada deve executar a função original
@@ -17,8 +18,10 @@
  * @param {(input: T) => Promise<G>} action função assíncrona
  * @returns {(input: T) => Promise<G>}
  */
-const delayedReturn = (time, action) => {
-  // TODO:
+const delayedReturn = (time, action) => async (...args) => {
+  const response = await action.call(action, ...args)
+  await delay(time)
+  return response
 }
 
 module.exports = {
